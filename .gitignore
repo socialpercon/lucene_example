@@ -1,0 +1,9 @@
+# file types
+*.class
+*.beam
+*.swp
+*.dump
+*.pyc
+*.tar.gz
+*.tar
+*.log
