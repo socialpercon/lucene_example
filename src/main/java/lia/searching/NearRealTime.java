@@ -15,20 +15,31 @@ package lia.searching;
  * See the License for the specific lan      
 */
 
-import org.apache.lucene.util.Version;
-import org.apache.lucene.store.*;
-import org.apache.lucene.index.*;
-import org.apache.lucene.search.*;
-import org.apache.lucene.document.*;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-
 import junit.framework.TestCase;
+
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.LongField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Version;
 
 // From chapter 3
 public class NearRealTime extends TestCase {
   public void testNearRealTime() throws Exception {
     Directory dir = new RAMDirectory();
-    IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_45, new StandardAnalyzer(Version.LUCENE_45));
+    IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_46, new StandardAnalyzer(Version.LUCENE_45));
     IndexWriter writer = new IndexWriter(dir, iwc);
     for(int i=0;i<10;i++) {
       Document doc = new Document();
@@ -44,8 +55,17 @@ public class NearRealTime extends TestCase {
     assertEquals(10, docs.totalHits);                        // #B
 
     writer.deleteDocuments(new Term("id", "7"));             // #2
-    Thread.sleep(1000);
-    reader = DirectoryReader.openIfChanged(reader);
+    IndexReader newReader = writer.getReader();
+    
+    if (r2 != null) {
+      reader.close();
+      reader = r2;
+    }
+    else {
+	    // recreate
+	    reader.close();
+	    reader = DirectoryReader.open(dir);
+    }
     searcher = new IndexSearcher(reader);      // #A
     docs = searcher.search(query, 10);
     assertEquals(9, docs.totalHits);    

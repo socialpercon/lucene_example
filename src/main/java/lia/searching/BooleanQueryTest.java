@@ -18,6 +18,7 @@ package lia.searching;
 import junit.framework.TestCase;
 import lia.common.TestUtil;
 
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.TopDocs;
@@ -32,7 +33,7 @@ import org.apache.lucene.store.Directory;
 public class BooleanQueryTest extends TestCase {
   public void testAnd() throws Exception {
     TermQuery searchingBooks =
-      new TermQuery(new Term("subject","search"));  //#1
+      new TermQuery(new Term("subject","Lu*"));  //#1
 
     Query books2010 =                       //#2
       NumericRangeQuery.newIntRange("pubmonth", 201001,       //#2
@@ -44,12 +45,13 @@ public class BooleanQueryTest extends TestCase {
     searchingBooks2010.add(books2010, BooleanClause.Occur.MUST);       //#3
 
     Directory dir = TestUtil.getBookIndexDirectory();
-    IndexSearcher searcher = new IndexSearcher(dir);
+    DirectoryReader dirr = DirectoryReader.open(dir);
+    IndexSearcher searcher = new IndexSearcher(dirr);
     TopDocs matches = searcher.search(searchingBooks2010, 10);
-
+    //System.out.println(matches);
     assertTrue(TestUtil.hitsIncludeTitle(searcher, matches,
                                  "Lucene in Action, Second Edition"));
-    searcher.close();
+
     dir.close();
   }
 
@@ -75,7 +77,9 @@ public class BooleanQueryTest extends TestCase {
                            BooleanClause.Occur.SHOULD);               // #3
 
     Directory dir = TestUtil.getBookIndexDirectory();
-    IndexSearcher searcher = new IndexSearcher(dir);
+    DirectoryReader dirr = DirectoryReader.open(dir);
+    IndexSearcher searcher = new IndexSearcher(dirr);
+    
     TopDocs matches = searcher.search(enlightenmentBooks, 10);
     System.out.println("or = " + enlightenmentBooks);
 
@@ -83,7 +87,7 @@ public class BooleanQueryTest extends TestCase {
                                          "Extreme Programming Explained"));
     assertTrue(TestUtil.hitsIncludeTitle(searcher, matches,
                                          "Tao Te Ching \u9053\u5FB7\u7D93"));
-    searcher.close();
+
     dir.close();
   }
 

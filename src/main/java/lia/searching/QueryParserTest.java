@@ -177,7 +177,7 @@ public class QueryParserTest extends TestCase {
 
   public void testWildcard() {
     try {
-      new QueryParser(Version.LUCENE_44,
+      new QueryParser(Version.LUCENE_46,
                       "field", analyzer).parse("*xyz");
       fail("Leading wildcard character should not be allowed");
     } catch (ParseException expected) {
@@ -186,14 +186,14 @@ public class QueryParserTest extends TestCase {
   }
 
   public void testBoost() throws Exception {
-    Query q = new QueryParser(Version.LUCENE_44,
+    Query q = new QueryParser(Version.LUCENE_46,
                               "field", analyzer).parse("term^2");
     assertEquals("term^2.0", q.toString("field"));
   }
 
   public void testParseException() {
     try {
-      new QueryParser(Version.LUCENE_44,
+      new QueryParser(Version.LUCENE_46,
                       "contents", analyzer).parse("^&#");
     } catch (ParseException expected) {
       // expression is invalid, as expected
