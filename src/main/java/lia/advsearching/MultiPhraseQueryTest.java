@@ -15,28 +15,29 @@ package lia.advsearching;
  * See the License for the specific lan      
 */
 
+import java.io.IOException;
+
 import junit.framework.TestCase;
-import lia.analysis.synonym.SynonymEngine;
 import lia.analysis.synonym.SynonymAnalyzer;
-import org.apache.lucene.queryParser.QueryParser;
-import org.apache.lucene.analysis.WhitespaceAnalyzer;
+import lia.analysis.synonym.SynonymEngine;
+
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MultiPhraseQuery;
+import org.apache.lucene.search.PhraseQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.PhraseQuery;
-import org.apache.lucene.search.MultiPhraseQuery;
-import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
-
-import java.io.IOException;
 
 // From chapter 5
 public class MultiPhraseQueryTest extends TestCase {
@@ -44,9 +45,7 @@ public class MultiPhraseQueryTest extends TestCase {
 
   protected void setUp() throws Exception {
     Directory directory = new RAMDirectory();
-    IndexWriter writer = new IndexWriter(directory,
-                                         new WhitespaceAnalyzer(),
-                                         IndexWriter.MaxFieldLength.UNLIMITED);
+    IndexWriter writer = new IndexWriter(directory, new WhitespaceAnalyzer(Version.LUCENE_46));
     Document doc1 = new Document();
     doc1.add(new Field("field",
               "the quick brown fox jumped over the lazy dog",

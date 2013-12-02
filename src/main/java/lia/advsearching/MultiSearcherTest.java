@@ -15,18 +15,19 @@ package lia.advsearching;
  * See the License for the specific lan      
 */
 
+import junit.framework.TestCase;
+
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.MultiSearcher;
 import org.apache.lucene.search.TermRangeQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
-import junit.framework.TestCase;
+import org.apache.lucene.util.Version;
 
 // From chapter 5
 public class MultiSearcherTest extends TestCase {
@@ -41,14 +42,13 @@ public class MultiSearcherTest extends TestCase {
                        "tarantula", "uromastyx", "vicuna",
                        "walrus", "xiphias", "yak", "zebra"};
 
-    Analyzer analyzer = new WhitespaceAnalyzer();
+    Analyzer analyzer = new WhitespaceAnalyzer(Version.LUCENE_46);
 
     Directory aTOmDirectory = new RAMDirectory();     // #1
     Directory nTOzDirectory = new RAMDirectory();     // #1
 
     IndexWriter aTOmWriter = new IndexWriter(aTOmDirectory,
-                                             analyzer,
-                                             IndexWriter.MaxFieldLength.UNLIMITED);
+                                             analyzer);
     IndexWriter nTOzWriter = new IndexWriter(nTOzDirectory,
                                              analyzer,
                                              IndexWriter.MaxFieldLength.UNLIMITED);
