@@ -24,7 +24,10 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.CachingWrapperFilter;
 import org.apache.lucene.search.ConstantScoreQuery;
+import org.apache.lucene.search.DisjunctionMaxQuery;
+import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MultiPhraseQuery;
@@ -32,6 +35,7 @@ import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.QueryWrapperFilter;
 import org.apache.lucene.search.RegexpQuery;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TermRangeQuery;
@@ -45,7 +49,7 @@ import org.apache.lucene.util.Version;
 public class BasicSearchingTest extends TestCase {
 
   public void testTerm() throws Exception {
-	  Directory dir = FSDirectory.open(new File("./index")); //A
+	  Directory dir = FSDirectory.open(new File("index")); //A
     DirectoryReader dirr = DirectoryReader.open(dir);
     IndexSearcher searcher = new IndexSearcher(dirr);  //B
 
@@ -73,7 +77,7 @@ public class BasicSearchingTest extends TestCase {
   */
 
   public void testKeyword() throws Exception {
-	 Directory dir = FSDirectory.open(new File("./index"));
+	 Directory dir = FSDirectory.open(new File("index"));
     //Directory dir = TestUtil.getBookIndexDirectory();
     DirectoryReader dirr = DirectoryReader.open(dir);
     
@@ -90,7 +94,7 @@ public class BasicSearchingTest extends TestCase {
   }
 
   public void testWildQuery() throws Exception {
-	 Directory dir = FSDirectory.open(new File("./index"));
+	 Directory dir = FSDirectory.open(new File("index"));
     //Directory dir = TestUtil.getBookIndexDirectory();
     DirectoryReader dirr = DirectoryReader.open(dir);
     
@@ -107,7 +111,7 @@ public class BasicSearchingTest extends TestCase {
   }
   
   public void testPrefixQuery() throws Exception {
-	 Directory dir = FSDirectory.open(new File("./index"));
+	 Directory dir = FSDirectory.open(new File("index"));
     //Directory dir = TestUtil.getBookIndexDirectory();
     DirectoryReader dirr = DirectoryReader.open(dir);
     
@@ -126,7 +130,7 @@ public class BasicSearchingTest extends TestCase {
   }
   
   public void testPhraseQuery() throws Exception {
-	 Directory dir = FSDirectory.open(new File("./index"));
+	 Directory dir = FSDirectory.open(new File("index"));
     //Directory dir = TestUtil.getBookIndexDirectory();
     DirectoryReader dirr = DirectoryReader.open(dir);
     
@@ -148,7 +152,7 @@ public class BasicSearchingTest extends TestCase {
   }
   
   public void testMultiPhraseQuery() throws Exception {
-	 Directory dir = FSDirectory.open(new File("./index"));
+	 Directory dir = FSDirectory.open(new File("index"));
     //Directory dir = TestUtil.getBookIndexDirectory();
     DirectoryReader dirr = DirectoryReader.open(dir);
     
@@ -169,7 +173,7 @@ public class BasicSearchingTest extends TestCase {
   }
 
   public void testFuzzyQuery() throws Exception {
-	 Directory dir = FSDirectory.open(new File("./index"));
+	 Directory dir = FSDirectory.open(new File("index"));
     //Directory dir = TestUtil.getBookIndexDirectory();
     DirectoryReader dirr = DirectoryReader.open(dir);
     
@@ -189,7 +193,7 @@ public class BasicSearchingTest extends TestCase {
   }  
   
   public void testRegexpQuery() throws Exception {
-	 Directory dir = FSDirectory.open(new File("./index"));
+	 Directory dir = FSDirectory.open(new File("index"));
     //Directory dir = TestUtil.getBookIndexDirectory();
     DirectoryReader dirr = DirectoryReader.open(dir);
     
@@ -210,7 +214,7 @@ public class BasicSearchingTest extends TestCase {
  
   
   public void testTermRangeQuery() throws Exception {
-	 Directory dir = FSDirectory.open(new File("./index"));
+	 Directory dir = FSDirectory.open(new File("index"));
     //Directory dir = TestUtil.getBookIndexDirectory();
     DirectoryReader dirr = DirectoryReader.open(dir);
     
@@ -230,7 +234,7 @@ public class BasicSearchingTest extends TestCase {
   }  
   
   public void testNumericRangeQuery() throws Exception {
-	 Directory dir = FSDirectory.open(new File("./index"));
+	 Directory dir = FSDirectory.open(new File("index"));
     //Directory dir = TestUtil.getBookIndexDirectory();
     DirectoryReader dirr = DirectoryReader.open(dir);
     
@@ -250,30 +254,62 @@ public class BasicSearchingTest extends TestCase {
   }  
   
   public void testConstantScoreQuery() throws Exception {
-	 Directory dir = FSDirectory.open(new File("./index"));
+	 Directory dir = FSDirectory.open(new File("index"));
     //Directory dir = TestUtil.getBookIndexDirectory();
     DirectoryReader dirr = DirectoryReader.open(dir);
     
     IndexSearcher searcher = new IndexSearcher(dirr);
 
-    Query query = new ConstantScoreQuery(new TermQuery(new Term("title", "junit")));
-    query.setBoost(50.0f);
-    Query query2 = new ConstantScoreQuery(query);
-        
-    TopDocs docs = searcher.search(query2, 10);
-    Document doc = searcher.doc(docs.scoreDocs[0].doc);
-    System.out.println("ConstantScoreQuery: " + docs.getMaxScore());
-    System.out.println(doc.get("title"));
-    assertEquals("JUnit in Action, Second Edition",
-                 2, docs.totalHits);
+    Filter filterB = new CachingWrapperFilter(new QueryWrapperFilter(new TermQuery(new Term("field", "action"))));
+    Query query = new ConstantScoreQuery(filterB);
 
+    assertEquals(1, searcher.search(query, filterB, 1).totalHits); // Query for field:b, Filter field:b
+
+    /*Filter filterA = new CachingWrapperFilter(new QueryWrapperFilter(new TermQuery(new Term("field", "a"))));
+    query = new ConstantScoreQuery(filterA);
+    
+    TopDocs docs = searcher.search(query, 10);
+    Document doc = searcher.doc(docs.scoreDocs[0].doc);
+    System.out.println("ConstantScoreQuery: " + docs.totalHits);
+    System.out.println(doc.get("title"));
+    */
+    dirr.close();
+    dir.close();
+  }
+  
+  public void testDisjunctionMaxQuery() throws Exception {
+	 Directory dir = FSDirectory.open(new File("index"));
+    //Directory dir = TestUtil.getBookIndexDirectory();
+    DirectoryReader dirr = DirectoryReader.open(dir);
+    
+    IndexSearcher searcher = new IndexSearcher(dirr);
+
+    DisjunctionMaxQuery q = new DisjunctionMaxQuery(0.0f);
+    Term t1 = new Term("subject", "junit");
+    Term t2 = new Term("isbn", "9781935182023");
+    Query query1 = new TermQuery(t1);
+    Query query2 = new TermQuery(t2);
+    q.add(query1);
+    q.add(query2);
+    TopDocs docs = searcher.search(q, 10);
+    Document doc = searcher.doc(docs.scoreDocs[0].doc);
+    System.out.println("DisjunctionMaxQuery: " + docs.totalHits);
+    System.out.println(doc.get("title"));
+    /*Filter filterA = new CachingWrapperFilter(new QueryWrapperFilter(new TermQuery(new Term("field", "a"))));
+    query = new ConstantScoreQuery(filterA);
+    
+    TopDocs docs = searcher.search(query, 10);
+    Document doc = searcher.doc(docs.scoreDocs[0].doc);
+    System.out.println("ConstantScoreQuery: " + docs.totalHits);
+    System.out.println(doc.get("title"));
+    */
     dirr.close();
     dir.close();
   }  
   
   
   public void testQueryParser() throws Exception {
-	  Directory dir = FSDirectory.open(new File("./index"));
+	  Directory dir = FSDirectory.open(new File("index"));
     DirectoryReader dirr = DirectoryReader.open(dir);
     IndexSearcher searcher = new IndexSearcher(dirr);
 

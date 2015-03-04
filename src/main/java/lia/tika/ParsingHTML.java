@@ -29,5 +29,4 @@ public class ParsingHTML {
         System.out.println("text:\n" + textHandler.toString());
         System.out.println("html:\n" + toHTMLHandler.toString());
     }
-
 }

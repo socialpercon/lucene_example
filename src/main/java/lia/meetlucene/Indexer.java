@@ -71,8 +71,8 @@ public class Indexer {
 
 	public Indexer(String indexDir) throws IOException {
 		Directory dir = FSDirectory.open(new File(indexDir));
-		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_44);
-		IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_44,
+		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_46);
+		IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_46,
 				analyzer);
 		iwc.setOpenMode(OpenMode.CREATE);
 		writer = new IndexWriter(dir, iwc);

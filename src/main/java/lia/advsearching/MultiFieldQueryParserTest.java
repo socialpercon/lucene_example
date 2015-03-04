@@ -15,29 +15,28 @@ package lia.advsearching;
  * See the License for the specific lan      
 */
 
-import lia.common.TestUtil;
 import junit.framework.TestCase;
+import lia.analysis.SimpleAnalyzer_;
+import lia.common.TestUtil;
 
-import org.apache.lucene.analysis.SimpleAnalyzer;
-import org.apache.lucene.queryParser.MultiFieldQueryParser;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.util.Version;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.util.Version;
 
 // From chapter 5
 public class MultiFieldQueryParserTest extends TestCase {
   public void testDefaultOperator() throws Exception {
-    Query query = new MultiFieldQueryParser(Version.LUCENE_30,
+    Query query = new MultiFieldQueryParser(Version.LUCENE_46,
                                             new String[]{"title", "subject"},
         new SimpleAnalyzer_()).parse("development");
 
     Directory dir = TestUtil.getBookIndexDirectory();
-    IndexSearcher searcher = new IndexSearcher(
-                               dir,
-                               true);
+    IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(dir));
     TopDocs hits = searcher.search(query, 10);
 
     assertTrue(TestUtil.hitsIncludeTitle(
@@ -49,12 +48,13 @@ public class MultiFieldQueryParserTest extends TestCase {
            searcher,                          //A
            hits,                              //A
            "Extreme Programming Explained")); //A
-    searcher.close();
+    
     dir.close();
+    
   }
 
   public void testSpecifiedOperator() throws Exception {
-    Query query = MultiFieldQueryParser.parse(Version.LUCENE_30,
+    Query query = MultiFieldQueryParser.parse(Version.LUCENE_46,
         "lucene",
         new String[]{"title", "subject"},
         new BooleanClause.Occur[]{BooleanClause.Occur.MUST,
@@ -62,9 +62,7 @@ public class MultiFieldQueryParserTest extends TestCase {
         new SimpleAnalyzer_());
 
     Directory dir = TestUtil.getBookIndexDirectory();
-    IndexSearcher searcher = new IndexSearcher(
-                               dir,
-                               true);
+    IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(dir));
     TopDocs hits = searcher.search(query, 10);
 
     assertTrue(TestUtil.hitsIncludeTitle(
@@ -72,7 +70,6 @@ public class MultiFieldQueryParserTest extends TestCase {
             hits,
             "Lucene in Action, Second Edition"));
     assertEquals("one and only one", 1, hits.scoreDocs.length);
-    searcher.close();
     dir.close();
   }
 
