@@ -11,7 +11,6 @@ public class Tab1_ArrivalInfo implements Runnable {
 		
 		result = realtimeSchedule(strSiteURL);
 		
-		
 	}
 	
 
